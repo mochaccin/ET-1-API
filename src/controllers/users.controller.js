@@ -1,4 +1,5 @@
 import userModel from '../models/user.model.js';
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 async function createUser(request, response) {
@@ -91,18 +92,6 @@ async function changeUserEmail(request, response) {
     response.status(500).send({ error });
   }
 
-}
-
-async function getUsers(request, response) {
-
-  try {
-    const users = await userModel.find({});
-
-    return response.send({ users });
-
-  } catch (error) {
-    response.status(500).send({ error });
-  }
 }
 
 async function getStudents(request, response) {
