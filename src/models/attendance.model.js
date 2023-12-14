@@ -11,7 +11,11 @@ const attendanceSchema = new mongoose.Schema(
         type: Date, 
         required: true,
     },
-    studentsPresent: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    studentsAttendances: {
+      type: Map,
+      of: Boolean,
+      required: false,
+    },
   },
   { timestamps: true }
 );
