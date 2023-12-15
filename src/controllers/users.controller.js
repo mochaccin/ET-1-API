@@ -91,20 +91,11 @@ async function deleteUser(request, response) {
     response.status(500).send({ error });
   }
 }
-
-// En un futuro cambiara debido a que no se pidio implementar autentificacion.
 async function changeUserPassword(request, response) {
   try {
-    const userId = request.params.userId;
-
-    if (userId !== request.id) {
-      return response
-        .status(404)
-        .send({ message: "You can't change someone elses password." });
-    }
-
+    const userId = request.id;
     const newPassword = request.body.password;
-    const user = await userModel.findById(userId);
+    const user = await userModel.findById(userId).select("+password").exec();
 
     if (!user) {
       return response.status(404).send({ message: "User not found" });
@@ -131,13 +122,7 @@ async function changeUserPassword(request, response) {
 
 async function changeUserEmail(request, response) {
   try {
-    const userId = request.params.userId;
-
-    if (userId !== request.id) {
-      return response
-        .status(404)
-        .send({ message: "You can't change someone elses email." });
-    }
+    const userId = request.id;
 
     const newEmail = request.body.email;
     const user = await userModel.findById(userId);
@@ -181,7 +166,6 @@ async function getTeachers(request, response) {
     response.status(500).send({ error });
   }
 }
-
 
 export {
   createUser,

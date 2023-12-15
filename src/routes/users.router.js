@@ -17,8 +17,8 @@ userRouter.get("/teachers", getTeachers);
 userRouter.post("/students", registerStudent);
 userRouter.post("/teachers", authRequired, isTeacher(), registerTeacher);
 userRouter.post("/", authRequired, createUser);
-userRouter.put("/:userId/password", authRequired, changeUserPassword);
-userRouter.put("/:userId/email", authRequired, changeUserEmail);
+userRouter.put("/password", authRequired, changeUserPassword);
+userRouter.put("/email", authRequired, changeUserEmail);
 userRouter.delete("/", authRequired, isTeacher(), deleteUser);
 
 export default userRouter;
