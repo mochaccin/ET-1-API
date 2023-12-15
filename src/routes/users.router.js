@@ -6,7 +6,6 @@ import {
   getTeachers,
   changeUserPassword,
   changeUserEmail,
-  login,
   registerStudent,
   registerTeacher,
 } from "../controllers/users.controller.js";
@@ -21,6 +20,5 @@ userRouter.post("/", authRequired, createUser);
 userRouter.put("/:userId/password", authRequired, changeUserPassword);
 userRouter.put("/:userId/email", authRequired, changeUserEmail);
 userRouter.delete("/", authRequired, isTeacher(), deleteUser);
-userRouter.post("/login", login);
 
 export default userRouter;
