@@ -7,7 +7,7 @@ async function getMe(req, res) {
 
 		return res.status(200).json(user);
 	} catch (error) {
-		response.status(500).send({ error });
+		response.status(404).send({ error });
 	}
 }
 
