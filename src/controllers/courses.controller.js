@@ -4,11 +4,8 @@ import userModel from "../models/user.model.js";
 
 async function createCourse(request, response) {
   try {
-    const { courseName, courseCode, teacherId } = request.body;
-
-    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
-      return response.status(400).send("Invalid teacher ID");
-    }
+    const { courseName, courseCode } = request.body;
+    const teacherId = request.id;
 
     const { role } = await userModel.findById(teacherId).exec();
     if (role !== "teacher") {
@@ -33,11 +30,8 @@ async function createCourse(request, response) {
 
 async function deleteCourse(request, response) {
   try {
-    const { courseCode, teacherId } = request.body;
-
-    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
-      return res.status(400).send("Invalid teacher ID");
-    }
+    const { courseCode } = request.params;
+    const teacherId = request.id;
 
     const { role } = await userModel.findById(teacherId).exec();
     if (role !== "teacher") {
@@ -54,35 +48,58 @@ async function deleteCourse(request, response) {
   }
 }
 
-async function addStudentToCourse(request, response) {
+async function getStudentsFromCourse(request, response) {
   try {
-    const { courseId, studentId, teacherId } = request.body;
-
-    const course = await courseModel.findById(courseId).exec();
-
-
-    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
-      return res.status(400).send("Invalid teacher ID");
-    }
+    const { courseCode } = request.params;
+    const teacherId = request.id;
 
     const { role } = await userModel.findById(teacherId).exec();
     if (role !== "teacher") {
       return response.status(400).send("The user is not a teacher");
     }
 
+    const course = await courseModel.findOne({ courseCode: courseCode });
 
     if (!course) {
       return response.status(404).send("Course not found");
     }
 
+    const students = await userModel.find({ _id: course.students });
 
-    if (course.students.includes(studentId)) {
+    if (students.length === 0) {
+      return response.status(404).send("No students found for this course");
+    }
+
+    response.status(200).send({ students });
+  } catch (error) {
+    response.status(500).send({ error });
+  }
+}
+
+async function addStudentToCourse(request, response) {
+  try {
+    const { courseCode, studentDni } = request.body;
+    const teacherId = request.id;
+
+    const course = await courseModel.findOne({ courseCode: courseCode });
+    const { role } = await userModel.findById(teacherId).exec();
+    const student = await userModel.findOne({ dni: studentDni }).exec();
+
+    if (role !== "teacher") {
+      return response.status(400).send("The user is not a teacher");
+    }
+
+    if (!course) {
+      return response.status(404).send("Course not found");
+    }
+
+    if (course.students.includes(student._id)) {
       return response
         .status(400)
         .send("Student already enrolled in this course");
     }
 
-    course.students.push(studentId);
+    course.students.push(student._id);
     await course.save();
 
     response.status(200).send("Student added to course successfully");
@@ -93,13 +110,11 @@ async function addStudentToCourse(request, response) {
 
 async function removeStudentFromCourse(request, response) {
   try {
-    const { courseId, studentId, teacherId } = request.body;
+    const { courseCode, studentDni } = request.body;
 
-    const course = await courseModel.findById(courseId);
-
-    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
-      return res.status(400).send("Invalid teacher ID");
-    }
+    const course = await courseModel.findOne({ courseCode: courseCode });
+    const teacherId = request.id;
+    const student = await userModel.findOne({ dni: studentDni }).exec();
 
     const { role } = await userModel.findById(teacherId).exec();
     if (role !== "teacher") {
@@ -110,13 +125,7 @@ async function removeStudentFromCourse(request, response) {
       return response.status(404).send("Course not found");
     }
 
-    if (course.teacherId !== teacherId) {
-      return res
-        .status(400)
-        .send("The teacher is not in charge of this course");
-    }
-
-    const studentIndex = course.students.indexOf(studentId);
+    const studentIndex = course.students.indexOf(student._id);
     if (studentIndex > -1) {
       course.students.splice(studentIndex, 1);
       await course.save();
@@ -147,7 +156,7 @@ async function getStudentCourses(request, response) {
 
 async function getTeacherCourses(request, response) {
   try {
-    const { teacherId } = request.params;
+    const teacherId = request.id;
 
     const courses = await courseModel.find({ teacherId: teacherId });
 
@@ -157,35 +166,32 @@ async function getTeacherCourses(request, response) {
 
     response.status(200).send({ courses });
   } catch (err) {
-    response.status(500).send({ error });
+    response.status(500).send({ err });
   }
 }
 
 async function getStudentCourseAttendances(request, response) {
   try {
     const { courseCode } = request.params;
-    console.log(courseCode);
+
     const studentId = request.id;
 
     const course = await courseModel.findOne({ courseCode: courseCode });
-
-    console.log("hola")
 
     if (!course) {
       return response.status(404).send("Course not found");
     }
 
-    if (!course.students.some(student => student.toHexString.equals(studentId))) {
+    if (
+      !course.students.some((student) => student.toHexString.equals(studentId))
+    ) {
       return response.status(404).send("Student not found in this course");
     }
-
-    console.log("hola")
 
     const attendances = course.courseAttendances.filter((attendance) =>
       attendance.studentsAttendances.has(studentId.toString())
     );
 
-    console.log("hola")
     let attendanceRecord = [];
 
     attendances.forEach((attendance) => {
@@ -194,8 +200,6 @@ async function getStudentCourseAttendances(request, response) {
         : 0;
       attendanceRecord.push(isPresent);
     });
-
-    console.log("hola")
 
     response.status(200).send({ attendanceRecord });
   } catch (error) {
@@ -211,4 +215,5 @@ export {
   getStudentCourses,
   getTeacherCourses,
   getStudentCourseAttendances,
+  getStudentsFromCourse,
 };
