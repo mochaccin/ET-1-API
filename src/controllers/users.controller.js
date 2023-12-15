@@ -202,8 +202,9 @@ async function login(request, response) {
   }
 
   const token = generateToken(user);
+  const { role } = user;
 
-  return response.status(200).send({ token });
+  return response.status(200).send({ token, role });
 }
 
 export {

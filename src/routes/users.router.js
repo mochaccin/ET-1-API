@@ -21,6 +21,6 @@ userRouter.post("/", authRequired, createUser);
 userRouter.put("/:userId/password", authRequired, changeUserPassword);
 userRouter.put("/:userId/email", authRequired, changeUserEmail);
 userRouter.delete("/", authRequired, isTeacher(), deleteUser);
-userRouter.get("/login", login);
+userRouter.post("/login", login);
 
 export default userRouter;

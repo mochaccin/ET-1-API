@@ -3,9 +3,10 @@ import userRouter from "./routes/users.router.js";
 import courseRouter from "./routes/courses.router.js";
 import { PORT } from "./configs/environment.js";
 import connectDB from "./configs/mongodb.js";
+import cors from "cors";
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 app.use("/users", userRouter);
 app.use("/courses", courseRouter);
