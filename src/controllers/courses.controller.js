@@ -128,7 +128,7 @@ async function removeStudentFromCourse(request, response) {
   }
 }
 
-async function getCoursesByStudentId(request, response) {
+async function getStudentCourses(request, response) {
   try {
     const { studentId } = request.params;
 
@@ -144,7 +144,7 @@ async function getCoursesByStudentId(request, response) {
   }
 }
 
-async function getCoursesByTeacherId(request, response) {
+async function getTeacherCourses(request, response) {
   try {
     const { teacherId } = request.params;
 
@@ -198,7 +198,7 @@ export {
   deleteCourse,
   addStudentToCourse,
   removeStudentFromCourse,
-  getCoursesByStudentId,
-  getCoursesByTeacherId,
+  getStudentCourses,
+  getTeacherCourses,
   getStudentCourseAttendances,
 };
