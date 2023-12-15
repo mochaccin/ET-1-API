@@ -13,11 +13,12 @@ import { authRequired, isStudent, isTeacher } from "../middlewares.js";
 const courseRouter = express.Router();
 courseRouter.delete("/", authRequired, isTeacher(),  deleteCourse);
 courseRouter.post("/", createCourse);
-courseRouter.get("/students/:studentId", authRequired, isStudent(), getStudentCourses);
-courseRouter.get("/teachers/:teacherId", authRequired, isTeacher(), getTeacherCourses);
-courseRouter.patch("/:courseId/students/add/:studentId", authRequired, isTeacher(),  addStudentToCourse);
+courseRouter.get("/getStudentCourses", authRequired, isStudent(), getStudentCourses);
+courseRouter.get("/getTeacherCourses", authRequired, isTeacher(), getTeacherCourses);
+courseRouter.get("/:courseCode/getAttendances", authRequired, isStudent(), getStudentCourseAttendances);
+courseRouter.patch("/students/add", addStudentToCourse);
 courseRouter.patch(
-  "/:courseId/students/remove/:studentId", authRequired, isTeacher(), 
+  "/students/remove", authRequired, isTeacher(), 
   removeStudentFromCourse
 );
 courseRouter.get(

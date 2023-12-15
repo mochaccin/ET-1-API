@@ -7,11 +7,12 @@ async function createCourse(request, response) {
     const { courseName, courseCode, teacherId } = request.body;
 
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
-      return res.status(400).send("Invalid teacher ID");
+      return response.status(400).send("Invalid teacher ID");
     }
 
-    if (userModel.findById(teacherId).role !== "teacher") {
-      return res.status(400).send("The user is not a teacher");
+    const { role } = await userModel.findById(teacherId).exec();
+    if (role !== "teacher") {
+      return response.status(400).send("The user is not a teacher");
     }
 
     const course = await courseModel.create({
@@ -38,8 +39,9 @@ async function deleteCourse(request, response) {
       return res.status(400).send("Invalid teacher ID");
     }
 
-    if (userModel.findById(teacherId).role !== "teacher") {
-      return res.status(400).send("The user is not a teacher");
+    const { role } = await userModel.findById(teacherId).exec();
+    if (role !== "teacher") {
+      return response.status(400).send("The user is not a teacher");
     }
 
     await courseModel.deleteOne({ courseCode: courseCode });
@@ -54,27 +56,25 @@ async function deleteCourse(request, response) {
 
 async function addStudentToCourse(request, response) {
   try {
-    const { courseId, studentId, teacherId } = request.params;
+    const { courseId, studentId, teacherId } = request.body;
 
-    const course = await courseModel.findById(courseId);
+    const course = await courseModel.findById(courseId).exec();
+
 
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       return res.status(400).send("Invalid teacher ID");
     }
 
-    if (userModel.findById(teacherId).role !== "teacher") {
-      return res.status(400).send("The user is not a teacher");
+    const { role } = await userModel.findById(teacherId).exec();
+    if (role !== "teacher") {
+      return response.status(400).send("The user is not a teacher");
     }
+
 
     if (!course) {
       return response.status(404).send("Course not found");
     }
 
-    if (course.teacherId !== teacherId) {
-      return res
-        .status(400)
-        .send("The teacher is not in charge of this course");
-    }
 
     if (course.students.includes(studentId)) {
       return response
@@ -93,7 +93,7 @@ async function addStudentToCourse(request, response) {
 
 async function removeStudentFromCourse(request, response) {
   try {
-    const { courseId, studentId, teacherId } = request.params;
+    const { courseId, studentId, teacherId } = request.body;
 
     const course = await courseModel.findById(courseId);
 
@@ -101,8 +101,9 @@ async function removeStudentFromCourse(request, response) {
       return res.status(400).send("Invalid teacher ID");
     }
 
-    if (userModel.findById(teacherId).role !== "teacher") {
-      return res.status(400).send("The user is not a teacher");
+    const { role } = await userModel.findById(teacherId).exec();
+    if (role !== "teacher") {
+      return response.status(400).send("The user is not a teacher");
     }
 
     if (!course) {
@@ -130,7 +131,7 @@ async function removeStudentFromCourse(request, response) {
 
 async function getStudentCourses(request, response) {
   try {
-    const { studentId } = request.params;
+    const studentId = request.id;
 
     const courses = await courseModel.find({ students: studentId });
 
@@ -140,7 +141,7 @@ async function getStudentCourses(request, response) {
 
     response.status(200).send({ courses });
   } catch (err) {
-    response.status(500).send({ error });
+    response.status(500).send({ message: err.message });
   }
 }
 
@@ -162,22 +163,29 @@ async function getTeacherCourses(request, response) {
 
 async function getStudentCourseAttendances(request, response) {
   try {
-    const { courseId, studentId } = request.params;
+    const { courseCode } = request.params;
+    console.log(courseCode);
+    const studentId = request.id;
 
-    const course = await courseModel.findById(courseId);
+    const course = await courseModel.findOne({ courseCode: courseCode });
+
+    console.log("hola")
 
     if (!course) {
       return response.status(404).send("Course not found");
     }
 
-    if (!course.students.includes(studentId)) {
+    if (!course.students.some(student => student.toHexString.equals(studentId))) {
       return response.status(404).send("Student not found in this course");
     }
+
+    console.log("hola")
 
     const attendances = course.courseAttendances.filter((attendance) =>
       attendance.studentsAttendances.has(studentId.toString())
     );
 
+    console.log("hola")
     let attendanceRecord = [];
 
     attendances.forEach((attendance) => {
@@ -186,6 +194,8 @@ async function getStudentCourseAttendances(request, response) {
         : 0;
       attendanceRecord.push(isPresent);
     });
+
+    console.log("hola")
 
     response.status(200).send({ attendanceRecord });
   } catch (error) {

@@ -1,4 +1,6 @@
 import userModel from "../models/user.model.js";
+import bcrypt from "bcrypt";
+import { generateToken } from "../utils/jwt.js";
 
 async function getMe(req, res) {
 	const userId = req.userId;
